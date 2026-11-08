@@ -81,3 +81,14 @@ helper = "glow.rs"
 bindings = [
   { name = "lights", ty = "&mut Vec<NativeColoredLight>", value = "lights" },
 ]
+
+# Cinematic: slow push-in on the field of view.
+[[injection]]
+id = "fov-push"
+hook = "compute_fov_modifier"
+hook_version = 1
+kind = "HEAD"
+helper = "fov.rs"
+bindings = [
+  { name = "modifier", ty = "&mut f32", value = "modifier" },
+]

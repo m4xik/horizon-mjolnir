@@ -27,6 +27,11 @@ the strike point. The final bolts of the storm are twice as strong as the others
 These use a static shared between the server and client halves, so they work in single player and for a LAN host.
 A remote dedicated server would need a mod message to the client (not done yet).
 
+## Cinematic (right click)
+Black letterbox bars slide in, the view pushes in slowly (field of view -16%), and the biggest bolts open with
+three hard cuts - white, black, white, about a fifth of a second - before the white-blue flash fades.
+The bars assume Minecraft's automatic GUI scale.
+
 ## Install the content part (works without Rust)
 Copy the `content` folder into Horizon's `horizon-mods/` folder (rename it `mjolnir`), enable it in Options > Mods.
 Or install the tool with `cargo binstall --git https://github.com/horizon-rust/horizon cargo-horizon-mod`, then in

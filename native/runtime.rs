@@ -109,6 +109,7 @@ pub fn queue_wrath(uuid: u128, dim: &str, player: &str, pos: [f64; 3], yaw_deg: 
             }
         }
         s.last_wrath.insert(uuid, s.tick);
+        start_cine();
         if safe_name(player) {
             schedule(
                 s,
@@ -216,8 +217,24 @@ pub fn shake_now() -> [f32; 6] {
     out
 }
 
-// Full-screen flash as an ARGB colour (alpha 0 when there is none): white-blue, gone in under half a second.
+// Full-screen flash as an ARGB colour (alpha 0 when there is none). A big strike opens with three
+// hard cuts, white / black / white (about a fifth of a second), then a white-blue flash that fades.
 pub fn flash_argb() -> u32 {
+    let impact = each_fx(|x, t| {
+        if x.strength < 1.0 || t >= 0.21 {
+            None
+        } else if t < 0.07 || t >= 0.14 {
+            Some(0xF2FF_FFFFu32)
+        } else {
+            Some(0xEB00_0000u32)
+        }
+    })
+    .into_iter()
+    .flatten()
+    .next();
+    if let Some(frame) = impact {
+        return frame;
+    }
     let a = each_fx(|x, t| {
         let k = (1.0 - t / 0.45).max(0.0);
         x.strength * 0.85 * k * k
@@ -235,6 +252,34 @@ pub fn lights_now() -> Vec<([f64; 3], f32)> {
         .filter(|(_, i)| *i > 0.02)
         .take(4)
         .collect()
+}
+
+// ---- Cinematic: letterbox bars and a slow push-in during Thor's wrath ------------------------
+static CINE: Mutex<Option<Instant>> = Mutex::new(None);
+const CINE_LEN: f32 = 3.2;
+
+fn start_cine() {
+    *CINE.lock().unwrap_or_else(|e| e.into_inner()) = Some(Instant::now());
+}
+
+// 0.0 to 1.0: eases in over 0.35 s, holds, eases out over the last 0.7 s.
+pub fn cine_amount() -> f32 {
+    let t = match *CINE.lock().unwrap_or_else(|e| e.into_inner()) {
+        Some(start) => start.elapsed().as_secs_f32(),
+        None => return 0.0,
+    };
+    if t >= CINE_LEN {
+        return 0.0;
+    }
+    let ease = |x: f32| x * x * (3.0 - 2.0 * x);
+    let a = (t / 0.35).clamp(0.0, 1.0);
+    let b = ((CINE_LEN - t) / 0.7).clamp(0.0, 1.0);
+    ease(a.min(b))
+}
+
+// Multiplier for the field of view: a slow push-in while the cinematic runs.
+pub fn fov_scale() -> f32 {
+    1.0 - 0.16 * cine_amount()
 }
 
 #[cfg(test)]
@@ -273,6 +318,16 @@ mod tests {
         assert!(shake_now().iter().any(|v| *v != 0.0));
         assert_eq!(lights_now().len(), 1);
         FX.lock().unwrap().clear();
+    }
+
+    #[test]
+    fn cinematic_eases() {
+        assert_eq!(cine_amount(), 0.0);
+        start_cine();
+        std::thread::sleep(std::time::Duration::from_millis(500));
+        assert!(cine_amount() > 0.9);
+        assert!(fov_scale() < 0.9);
+        *CINE.lock().unwrap() = None;
     }
 
     #[test]
