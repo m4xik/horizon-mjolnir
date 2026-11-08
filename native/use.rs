@@ -1,6 +1,6 @@
 // Runs before Horizon's use_item hook: a right click with any item.
-fn wrath(game: &mut crate::game::Game<'_>, is_mjolnir: bool, claimed: &mut bool) {
-    if !is_mjolnir {
+fn wrath(game: &mut crate::game::Game<'_>, stack: &ItemStack, claimed: &mut bool) {
+    if &*stack.item != "mjolnir:mjolnir" {
         return;
     }
     let host: &mut dyn horizon_client::mod_api::Host = game;

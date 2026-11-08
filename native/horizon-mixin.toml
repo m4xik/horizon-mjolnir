@@ -21,7 +21,7 @@ kind = "HEAD"
 helper = "hit.rs"
 bindings = [
   { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
-  { name = "is_mjolnir", ty = "bool", value = "&*stack.item == \"mjolnir:mjolnir\"" },
+  { name = "stack", ty = "&ItemStack", value = "stack" },
   { name = "entity", ty = "u32", value = "entity" },
 ]
 
@@ -34,7 +34,7 @@ kind = "HEAD"
 helper = "use.rs"
 bindings = [
   { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
-  { name = "is_mjolnir", ty = "bool", value = "&*stack.item == \"mjolnir:mjolnir\"" },
+  { name = "stack", ty = "&ItemStack", value = "stack" },
   { name = "claimed", ty = "&mut bool", value = "claimed" },
 ]
 
@@ -47,7 +47,7 @@ kind = "HEAD"
 helper = "tick.rs"
 bindings = [
   { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
-  { name = "is_end", ty = "bool", value = "matches!(phase, horizon_client::mod_api::ServerTickPhase::ServerTickEnd { .. })" },
+  { name = "phase", ty = "&horizon_client::mod_api::ServerTickPhase", value = "&phase" },
 ]
 
 # Client effects: camera shake, screen flash and a blue light where each bolt lands.

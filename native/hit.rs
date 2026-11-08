@@ -1,6 +1,6 @@
 // Runs before Horizon's hurt_enemy hook: a player's hit landed on a mob.
-fn hit_strike(game: &mut crate::game::Game<'_>, is_mjolnir: bool, entity: u32) {
-    if !is_mjolnir {
+fn hit_strike(game: &mut crate::game::Game<'_>, stack: &ItemStack, entity: u32) {
+    if &*stack.item != "mjolnir:mjolnir" {
         return;
     }
     let host: &mut dyn horizon_client::mod_api::Host = game;
