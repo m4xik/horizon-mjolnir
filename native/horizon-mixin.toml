@@ -52,7 +52,7 @@ bindings = [
 
 # Client effects: camera shake, screen flash and a blue light where each bolt lands.
 [[injection]]
-id = "shake"
+id = "camera-shake"
 hook = "camera_shake"
 hook_version = 1
 kind = "HEAD"

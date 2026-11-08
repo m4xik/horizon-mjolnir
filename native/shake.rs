@@ -1,5 +1,5 @@
 // Client: adds the camera shake of the bolts that just landed.
-fn shake(shake: &mut NativeShake) {
+fn camera_shake(shake: &mut NativeShake) {
     let s = crate::game::mjolnir::shake_now();
     shake.pitch += s[0];
     shake.yaw += s[1];
