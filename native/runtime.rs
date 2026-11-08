@@ -84,7 +84,7 @@ fn strike(dim: &str, p: [f64; 3], big: bool, snd: &str) -> Vec<Action> {
         at(
             dim,
             format!(
-                "execute positioned {:.2} {:.2} {:.2} run damage @e[distance=..{radius},type=!minecraft:player,type=!minecraft:item,type=!minecraft:experience_orb,type=!minecraft:lightning_bolt] {amount} minecraft:lightning_bolt",
+                "execute positioned {:.2} {:.2} {:.2} as @e[distance=..{radius},type=!minecraft:player,type=!minecraft:item,type=!minecraft:experience_orb,type=!minecraft:lightning_bolt] run damage @s {amount} minecraft:lightning_bolt",
                 p[0], p[1], p[2]
             ),
         ),
