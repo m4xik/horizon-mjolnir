@@ -49,3 +49,35 @@ bindings = [
   { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
   { name = "is_end", ty = "bool", value = "matches!(phase, horizon_client::mod_api::ServerTickPhase::ServerTickEnd { .. })" },
 ]
+
+# Client effects: camera shake, screen flash and a blue light where each bolt lands.
+[[injection]]
+id = "shake"
+hook = "camera_shake"
+hook_version = 1
+kind = "HEAD"
+helper = "shake.rs"
+bindings = [
+  { name = "shake", ty = "&mut NativeShake", value = "shake" },
+]
+
+[[injection]]
+id = "flash"
+hook = "gui_render_post"
+hook_version = 1
+kind = "HEAD"
+helper = "flash.rs"
+bindings = [
+  { name = "game", ty = "&Game<'_>", value = "&*self" },
+  { name = "batch", ty = "&mut HudBatch", value = "batch" },
+]
+
+[[injection]]
+id = "glow"
+hook = "visuals"
+hook_version = 1
+kind = "HEAD"
+helper = "glow.rs"
+bindings = [
+  { name = "lights", ty = "&mut Vec<NativeColoredLight>", value = "lights" },
+]

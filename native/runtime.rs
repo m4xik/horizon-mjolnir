@@ -11,7 +11,7 @@ pub enum Action {
     // A vanilla command run as the server console.
     Command(String),
     // A lightning bolt summoned in `dim` at `pos`.
-    Bolt { dim: String, pos: [f64; 3] },
+    Bolt { dim: String, pos: [f64; 3], big: bool },
 }
 
 #[derive(Default)]
@@ -62,7 +62,7 @@ fn sound(dim: &str, p: [f64; 3], name: &str, volume: f32, pitch: f32) -> Action 
 // One bolt with its flash: sparks, a crack of thunder, a puff of smoke from the ground.
 fn strike(dim: &str, p: [f64; 3], big: bool) -> Vec<Action> {
     let mut v = vec![
-        Action::Bolt { dim: dim.to_string(), pos: p },
+        Action::Bolt { dim: dim.to_string(), pos: p, big },
         sparks(dim, p, 0.7, 90),
         sound(dim, p, "minecraft:entity.lightning_bolt.impact", 3.0, 1.0),
         at(
@@ -162,6 +162,81 @@ pub fn drain() -> Vec<Action> {
     })
 }
 
+// ---- Client-side screen effects -------------------------------------------------------------
+// Triggered when a bolt lands. The server and the client share this process in single player and
+// for a LAN host, so a plain static carries the trigger; a remote dedicated server would need a
+// mod message instead. Timing uses real time, so no client tick hook is needed.
+use std::time::Instant;
+
+struct Fx {
+    start: Instant,
+    pos: [f64; 3],
+    strength: f32,
+}
+
+static FX: Mutex<Vec<Fx>> = Mutex::new(Vec::new());
+const FX_LIFETIME: f32 = 2.5;
+
+pub fn trigger_fx(pos: [f64; 3], big: bool) {
+    let mut fx = FX.lock().unwrap_or_else(|e| e.into_inner());
+    fx.retain(|f| f.start.elapsed().as_secs_f32() < FX_LIFETIME);
+    if fx.len() < 8 {
+        fx.push(Fx { start: Instant::now(), pos, strength: if big { 1.0 } else { 0.5 } });
+    }
+}
+
+fn each_fx<R>(mut f: impl FnMut(&Fx, f32) -> R) -> Vec<R> {
+    let fx = FX.lock().unwrap_or_else(|e| e.into_inner());
+    fx.iter()
+        .filter_map(|x| {
+            let age = x.start.elapsed().as_secs_f32();
+            (age < FX_LIFETIME).then(|| f(x, age))
+        })
+        .collect()
+}
+
+// Camera shake as [pitch, yaw, roll, offset right, up, back]; Horizon bounds and scales it.
+pub fn shake_now() -> [f32; 6] {
+    let mut out = [0.0_f32; 6];
+    for v in each_fx(|x, t| {
+        let a = x.strength * (-t * 2.2).exp();
+        [
+            a * 2.0 * (t * 47.0).sin(),
+            a * 1.5 * (t * 39.0 + 1.0).sin(),
+            a * 2.5 * (t * 53.0 + 2.0).sin(),
+            a * 0.03 * (t * 43.0).sin(),
+            a * 0.05 * (t * 61.0).sin(),
+            0.0,
+        ]
+    }) {
+        for i in 0..6 {
+            out[i] += v[i];
+        }
+    }
+    out
+}
+
+// Full-screen flash as an ARGB colour (alpha 0 when there is none): white-blue, gone in under half a second.
+pub fn flash_argb() -> u32 {
+    let a = each_fx(|x, t| {
+        let k = (1.0 - t / 0.45).max(0.0);
+        x.strength * 0.85 * k * k
+    })
+    .into_iter()
+    .fold(0.0_f32, f32::max)
+    .clamp(0.0, 0.9);
+    ((a * 255.0) as u32) << 24 | 0x00DC_EBFF
+}
+
+// Blue-white lights where the bolts landed: (position, intensity), at most four.
+pub fn lights_now() -> Vec<([f64; 3], f32)> {
+    each_fx(|x, t| ([x.pos[0], x.pos[1] + 1.5, x.pos[2]], (x.strength * (-t * 4.0).exp()).clamp(0.0, 1.0)))
+        .into_iter()
+        .filter(|(_, i)| *i > 0.02)
+        .take(4)
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -188,6 +263,16 @@ mod tests {
             bolts += drain().iter().filter(|a| matches!(a, Action::Bolt { .. })).count();
         }
         assert_eq!(bolts, 6);
+    }
+
+    #[test]
+    fn fx_flash_and_shake_fade() {
+        assert_eq!(flash_argb() >> 24, 0);
+        trigger_fx([0.0, 64.0, 0.0], true);
+        assert!(flash_argb() >> 24 > 0);
+        assert!(shake_now().iter().any(|v| *v != 0.0));
+        assert_eq!(lights_now().len(), 1);
+        FX.lock().unwrap().clear();
     }
 
     #[test]
