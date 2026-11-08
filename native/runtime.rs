@@ -221,9 +221,9 @@ pub fn shake_now() -> [f32; 6] {
 // hard cuts, white / black / white (about a fifth of a second), then a white-blue flash that fades.
 pub fn flash_argb() -> u32 {
     let impact = each_fx(|x, t| {
-        if x.strength < 1.0 || t >= 0.21 {
+        if x.strength < 1.0 || t >= 0.27 {
             None
-        } else if t < 0.07 || t >= 0.14 {
+        } else if t < 0.09 || t >= 0.18 {
             Some(0xF2FF_FFFFu32)
         } else {
             Some(0xEB00_0000u32)
@@ -236,7 +236,7 @@ pub fn flash_argb() -> u32 {
         return frame;
     }
     let a = each_fx(|x, t| {
-        let k = (1.0 - t / 0.45).max(0.0);
+        let k = (1.0 - t / 0.8).max(0.0);
         x.strength * 0.85 * k * k
     })
     .into_iter()
