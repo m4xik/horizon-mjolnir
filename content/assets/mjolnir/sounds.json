@@ -1,0 +1,42 @@
+{
+  "crack": {
+    "sounds": [
+      {
+        "name": "mjolnir:crack1",
+        "attenuation_distance": 256
+      }
+    ]
+  },
+  "crack_mid": {
+    "sounds": [
+      {
+        "name": "mjolnir:crack_mid1",
+        "attenuation_distance": 256
+      }
+    ]
+  },
+  "crack_far": {
+    "sounds": [
+      {
+        "name": "mjolnir:crack_far1",
+        "attenuation_distance": 256
+      }
+    ]
+  },
+  "blast": {
+    "sounds": [
+      {
+        "name": "mjolnir:blast",
+        "attenuation_distance": 256
+      }
+    ]
+  },
+  "finale": {
+    "sounds": [
+      {
+        "name": "mjolnir:finale",
+        "attenuation_distance": 256
+      }
+    ]
+  }
+}

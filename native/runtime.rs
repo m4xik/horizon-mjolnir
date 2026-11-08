@@ -62,12 +62,13 @@ fn sound(dim: &str, p: [f64; 3], name: &str, volume: f32, pitch: f32) -> Action 
 }
 
 // One bolt with its flash: sparks, a crack of thunder, a puff of smoke from the ground.
-fn strike(dim: &str, p: [f64; 3], big: bool) -> Vec<Action> {
+fn strike(dim: &str, p: [f64; 3], big: bool, snd: &str) -> Vec<Action> {
     let mut v = vec![
         Action::Bolt { dim: dim.to_string(), pos: p, big },
         sparks(dim, p, 0.7, 90),
         sound(dim, p, "minecraft:entity.lightning_bolt.impact", 3.0, 1.0),
         sound(dim, p, "minecraft:item.mace.smash_ground_heavy", 2.0, 0.8),
+        sound(dim, p, snd, if big { 6.0 } else { 3.0 }, 1.0),
         at(
             dim,
             format!("particle minecraft:explosion {:.2} {:.2} {:.2} 0.4 0.4 0.4 0 4 force", p[0], p[1] + 0.5, p[2]),
@@ -75,9 +76,7 @@ fn strike(dim: &str, p: [f64; 3], big: bool) -> Vec<Action> {
     ];
     if big {
         v.push(sound(dim, p, "minecraft:entity.lightning_bolt.thunder", 6.0, 0.7));
-        v.push(sound(dim, p, "minecraft:item.trident.thunder", 5.0, 0.6));
-        v.push(sound(dim, p, "minecraft:entity.warden.sonic_boom", 3.0, 0.6));
-        v.push(sound(dim, p, "minecraft:entity.generic.explode", 4.0, 0.5));
+        v.push(sound(dim, p, "minecraft:entity.generic.explode", 3.0, 0.5));
         v.push(at(
             dim,
             format!("particle minecraft:explosion_emitter {:.2} {:.2} {:.2} 0 0 0 0 1 force", p[0], p[1] + 0.5, p[2]),
@@ -95,7 +94,7 @@ fn schedule(s: &mut State, delay: u64, actions: Vec<Action>) {
 // A hit with Mjolnir landed on a mob at `pos`.
 pub fn queue_hit(dim: &str, pos: [f64; 3], origin: [f64; 3], player: &str) {
     with(|s| {
-        let mut a = strike(dim, pos, false);
+        let mut a = strike(dim, pos, false, "mjolnir:crack");
         a.push(Action::Arc { from: origin, to: [pos[0], pos[1] + 1.0, pos[2]] });
         if safe_name(player) {
             // Thor does not fry himself.
@@ -134,6 +133,7 @@ pub fn queue_wrath(uuid: u128, dim: &str, player: &str, pos: [f64; 3], yaw_deg: 
             0,
             vec![
                 Action::Command("weather thunder 15s".to_string()),
+                sound(dim, pos, "mjolnir:crack_far", 4.0, 1.0),
                 sound(dim, pos, "minecraft:block.respawn_anchor.charge", 4.0, 0.5),
                 sound(dim, pos, "minecraft:block.beacon.power_select", 3.0, 0.5),
                 sound(dim, pos, "minecraft:entity.lightning_bolt.thunder", 5.0, 0.6),
@@ -144,15 +144,15 @@ pub fn queue_wrath(uuid: u128, dim: &str, player: &str, pos: [f64; 3], yaw_deg: 
         let dir = [-yaw.sin(), yaw.cos()];
         // The caster is struck first, harmlessly, then the storm walks forward.
         let origin = [pos[0], pos[1] + 1.4, pos[2]];
-        schedule(s, 4, strike(dim, pos, true));
+        schedule(s, 4, strike(dim, pos, true, "mjolnir:blast"));
         for (i, dist) in [5.0_f64, 8.0, 11.0, 14.0].iter().enumerate() {
             let p = [pos[0] + dir[0] * dist, pos[1], pos[2] + dir[1] * dist];
             let delay = 10 + 4 * i as u64;
-            schedule(s, delay, strike(dim, p, false));
+            schedule(s, delay, strike(dim, p, false, "mjolnir:crack_mid"));
             schedule(s, delay, vec![Action::Arc { from: origin, to: [p[0], p[1] + 1.0, p[2]] }]);
         }
         let end = [pos[0] + dir[0] * 17.0, pos[1], pos[2] + dir[1] * 17.0];
-        schedule(s, 30, strike(dim, end, true));
+        schedule(s, 30, strike(dim, end, true, "mjolnir:finale"));
         schedule(s, 30, vec![Action::Arc { from: origin, to: [end[0], end[1] + 1.0, end[2]] }]);
         true
     })
