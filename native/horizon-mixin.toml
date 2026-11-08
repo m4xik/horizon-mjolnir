@@ -101,6 +101,7 @@ hook_version = 1
 kind = "HEAD"
 helper = "orbit.rs"
 bindings = [
+  { name = "game", ty = "&Game<'_>", value = "&*self" },
   { name = "position", ty = "&mut [f64; 3]", value = "position" },
   { name = "yaw", ty = "&mut f32", value = "yaw" },
   { name = "pitch", ty = "&mut f32", value = "pitch" },
@@ -137,4 +138,15 @@ kind = "HEAD"
 helper = "shader.rs"
 bindings = [
   { name = "params", ty = "&mut [[f32; 4]; 8]", value = "params" },
+]
+
+# Cinematic: third person while it runs, so the player is drawn. Not in the hook catalog yet, so it
+# names its target and relies on the pinned Horizon revision.
+[[injection]]
+id = "camera-view"
+target = "horizon_client::game::native_hooks::Game<'_>::native_client_tick_post"
+kind = "HEAD"
+helper = "view.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
 ]

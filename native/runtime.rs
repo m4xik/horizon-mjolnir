@@ -19,7 +19,7 @@ pub enum Action {
 #[derive(Default)]
 struct State {
     tick: u64,
-    pending: Vec<(u64, Action)>,
+    pending: Vec<(u64, Action, Instant)>,
     last_wrath: HashMap<u128, u64>,
 }
 
@@ -88,7 +88,8 @@ fn strike(dim: &str, p: [f64; 3], big: bool, snd: &str) -> Vec<Action> {
 
 fn schedule(s: &mut State, delay: u64, actions: Vec<Action>) {
     let due = s.tick + delay;
-    s.pending.extend(actions.into_iter().map(|a| (due, a)));
+    let now = Instant::now();
+    s.pending.extend(actions.into_iter().map(|a| (due, a, now)));
 }
 
 // A hit with Mjolnir landed on a mob at `pos`.
@@ -164,8 +165,12 @@ pub fn drain() -> Vec<Action> {
         s.tick += 1;
         let now = s.tick;
         let mut due = Vec::new();
-        s.pending.retain(|(t, a)| {
-            if *t <= now {
+        // Actions that waited seconds of real time belong to a world that was left: drop them,
+        // so re-entering a world never replays an old storm.
+        s.pending.retain(|(t, a, made)| {
+            if made.elapsed().as_secs_f32() > 4.0 {
+                false
+            } else if *t <= now {
                 due.push(a.clone());
                 false
             } else {
@@ -294,6 +299,26 @@ pub fn cine_amount() -> f32 {
 // Multiplier for the field of view: a slow push-in while the cinematic runs.
 pub fn fov_scale() -> f32 {
     1.0 - 0.16 * cine_amount()
+}
+
+// While the cinematic runs the game's camera is switched to third person (so the player is drawn) and
+// put back afterwards. Codes: 0 first person, 1 third person back, 2 third person front.
+static VIEW_SAVED: Mutex<Option<u8>> = Mutex::new(None);
+
+pub fn take_view_change(current: u8) -> Option<u8> {
+    let wanted = cine_amount() > 0.001;
+    let mut saved = VIEW_SAVED.lock().unwrap_or_else(|e| e.into_inner());
+    match (wanted, *saved) {
+        (true, None) => {
+            *saved = Some(current);
+            Some(1)
+        }
+        (false, Some(old)) => {
+            *saved = None;
+            Some(old)
+        }
+        _ => None,
+    }
 }
 
 // Camera orbit: while the cinematic runs the camera swings around the player and looks at them.
