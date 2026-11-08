@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": ["NLN", "NSN", " S "],
+  "key": {
+    "N": "minecraft:netherite_ingot",
+    "L": "minecraft:lightning_rod",
+    "S": "minecraft:stick"
+  },
+  "result": { "id": "mjolnir:mjolnir", "count": 1 }
+}

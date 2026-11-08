@@ -1,0 +1,51 @@
+[mod]
+id = "mjolnir"
+version = "0.1.0"
+priority = 100
+
+[compatibility]
+horizon_revision = "ba6344a59cb9e755b730dcf02285fc0d33b97d3c"
+
+[[module]]
+id = "runtime"
+file = "crates/horizon-client/src/game.rs"
+name = "mjolnir"
+source = "runtime.rs"
+
+# A player's hit lands on a mob while holding the hammer.
+[[injection]]
+id = "hit-strike"
+hook = "hurt_enemy"
+hook_version = 1
+kind = "HEAD"
+helper = "hit.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "is_mjolnir", ty = "bool", value = "&*stack.item == \"mjolnir:mjolnir\"" },
+  { name = "entity", ty = "u32", value = "entity" },
+]
+
+# Right click with the hammer: Thor's wrath.
+[[injection]]
+id = "wrath"
+hook = "use_item"
+hook_version = 1
+kind = "HEAD"
+helper = "use.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "is_mjolnir", ty = "bool", value = "&*stack.item == \"mjolnir:mjolnir\"" },
+  { name = "claimed", ty = "&mut bool", value = "claimed" },
+]
+
+# Applies the queued bolts, sounds and particles once per tick.
+[[injection]]
+id = "tick"
+hook = "server_tick"
+hook_version = 1
+kind = "HEAD"
+helper = "tick.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "is_end", ty = "bool", value = "matches!(phase, horizon_client::mod_api::ServerTickPhase::ServerTickEnd { .. })" },
+]

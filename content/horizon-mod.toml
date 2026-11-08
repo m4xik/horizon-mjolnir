@@ -1,0 +1,8 @@
+id = "mjolnir"
+name = "Mjolnir - Thor's Hammer"
+version = "0.1.0"
+description = "Mjolnir, the hammer of Thor: an unbreakable war hammer. With the native part installed it calls down cinematic lightning."
+authors = ["maxikyt2k"]
+api = "0.2"
+side = "both"
+capabilities = ["registries"]
