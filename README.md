@@ -30,7 +30,7 @@ A remote dedicated server would need a mod message to the client (not done yet).
 ## Cinematic (right click)
 Black letterbox bars slide in, the view pushes in slowly (field of view -16%), and the biggest bolts open with
 three hard cuts - white, black, white, about a fifth of a second - before the white-blue flash fades.
-The bars assume Minecraft's automatic GUI scale.
+The bars use the real window size in GUI pixels, so any GUI scale works.
 
 ## Install the content part (works without Rust)
 Copy the `content` folder into Horizon's `horizon-mods/` folder (rename it `mjolnir`), enable it in Options > Mods.
