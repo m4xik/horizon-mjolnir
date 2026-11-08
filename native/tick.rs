@@ -9,6 +9,7 @@ fn tick(game: &mut crate::game::Game<'_>, phase: &horizon_client::mod_api::Serve
                 game.native_run_command(&line);
             }
             crate::game::mjolnir::Action::Bolt { dim, pos, big } => {
+                crate::game::mjolnir::trace(&format!("summon bolt pos={pos:?} big={big}"));
                 game.native_summon(
                     &dim,
                     "minecraft:lightning_bolt",

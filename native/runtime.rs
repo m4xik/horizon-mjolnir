@@ -25,6 +25,20 @@ struct State {
 
 static STATE: Mutex<Option<State>> = Mutex::new(None);
 
+// Diagnostic trail in %APPDATA%\horizon\mjolnir.log: who queued the bolts (hit, wrath or tick).
+pub fn trace(msg: &str) {
+    use std::io::Write;
+    let Ok(dir) = std::env::var("APPDATA") else { return };
+    let path = std::path::Path::new(&dir).join("horizon").join("mjolnir.log");
+    if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(path) {
+        let ms = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis())
+            .unwrap_or(0);
+        let _ = writeln!(f, "{ms} {msg}");
+    }
+}
+
 fn with<R>(f: impl FnOnce(&mut State) -> R) -> R {
     let mut guard = STATE.lock().unwrap_or_else(|e| e.into_inner());
     f(guard.get_or_insert_with(State::default))
@@ -94,6 +108,7 @@ fn schedule(s: &mut State, delay: u64, actions: Vec<Action>) {
 
 // A hit with Mjolnir landed on a mob at `pos`.
 pub fn queue_hit(dim: &str, pos: [f64; 3], origin: [f64; 3], player: &str) {
+    trace(&format!("queue_hit dim={dim} pos={pos:?} player={player}"));
     with(|s| {
         let mut a = strike(dim, pos, false, "mjolnir:crack");
         a.push(Action::Arc { from: origin, to: [pos[0], pos[1] + 1.0, pos[2]] });
@@ -109,6 +124,7 @@ pub fn queue_hit(dim: &str, pos: [f64; 3], origin: [f64; 3], player: &str) {
 // Right click: "Thor's wrath". Returns false while on cooldown.
 // The storm darkens the sky, rings the caster in sparks, then marches bolts forward.
 pub fn queue_wrath(uuid: u128, dim: &str, player: &str, pos: [f64; 3], yaw_deg: f32) -> bool {
+    trace(&format!("queue_wrath dim={dim} pos={pos:?} player={player}"));
     with(|s| {
         if let Some(last) = s.last_wrath.get(&uuid) {
             if s.tick < last + WRATH_COOLDOWN_TICKS {
