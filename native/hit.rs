@@ -5,8 +5,8 @@ fn hit_strike(game: &mut crate::game::Game<'_>, stack: &ItemStack, entity: u32) 
     }
     let host: &mut dyn horizon_client::mod_api::Host = game;
     let Some(player) = host.acting_player() else { return };
-    let target = host.entity(entity);
-    if let Some(pos) = target.position(&mut *host) {
+    let Some(target) = host.entity(entity) else { return };
+    if let Some(pos) = target.position(&*host) {
         crate::game::mjolnir::queue_hit(&player.dimension, pos, &player.name);
     }
 }
