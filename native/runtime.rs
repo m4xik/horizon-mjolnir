@@ -77,8 +77,17 @@ fn sound(dim: &str, p: [f64; 3], name: &str, volume: f32, pitch: f32) -> Action 
 
 // One bolt with its flash: sparks, a crack of thunder, a puff of smoke from the ground.
 fn strike(dim: &str, p: [f64; 3], big: bool, snd: &str) -> Vec<Action> {
+    // The bolt entity does not hurt reliably, so every strike also deals its own damage.
+    let (radius, amount) = if big { (5, 24) } else { (3, 10) };
     let mut v = vec![
         Action::Bolt { dim: dim.to_string(), pos: p, big },
+        at(
+            dim,
+            format!(
+                "execute positioned {:.2} {:.2} {:.2} run damage @e[distance=..{radius},type=!minecraft:player,type=!minecraft:item,type=!minecraft:experience_orb,type=!minecraft:lightning_bolt] {amount} minecraft:lightning_bolt",
+                p[0], p[1], p[2]
+            ),
+        ),
         sparks(dim, p, 0.7, 90),
         sound(dim, p, "minecraft:entity.lightning_bolt.impact", 3.0, 1.0),
         sound(dim, p, "minecraft:item.mace.smash_ground_heavy", 2.0, 0.8),
