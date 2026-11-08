@@ -17,6 +17,9 @@ fn tick(game: &mut crate::game::Game<'_>, phase: &horizon_client::mod_api::Serve
                 );
                 crate::game::mjolnir::trigger_fx(pos, big);
             }
+            crate::game::mjolnir::Action::Arc { from, to } => {
+                crate::game::mjolnir::add_arc(from, to);
+            }
         }
     }
 }

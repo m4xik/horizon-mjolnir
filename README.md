@@ -32,6 +32,20 @@ Black letterbox bars slide in, the view pushes in slowly (field of view -16%), a
 three hard cuts - white, black, white, about a fifth of a second - before the white-blue flash fades.
 The bars use the real window size in GUI pixels, so any GUI scale works.
 
+## Camera, arcs, shader and sound
+- **Camera orbit:** during the right-click cinematic the camera swings around the player, looking at them; the
+  first-person hand is hidden meanwhile.
+- **Lightning arcs:** a jagged blue-white arc (glow, core and two branches, flickering every 50 ms) from the hammer to
+  every target and strike point (`native_world_primitives`).
+- **Shader pack `mjolnir_storm`** (folder `shader/mjolnir_storm`, copy to `shaderpacks/` and pick it in Options >
+  Video Settings > Shaders): the big strike's impact frames in the style of Orbital Laser's Kanada mode (white with
+  black silhouettes and converging lines, a negative, white again), then a zoom blur with a colour split and glow, plus a
+  cold storm grade and a vignette. Without the pack, the mod's HUD flash is used instead.
+- **Sound:** layered vanilla sounds (charge-up, thunder, trident thunder, sonic boom, mace smash). Orbital Laser's
+  synthesised sounds (MIT) can be added as a resource pack.
+
+Idea credits: Orbital Laser by Stink-O (MIT), https://github.com/Stink-O/orbital-laser
+
 ## Install the content part (works without Rust)
 Copy the `content` folder into Horizon's `horizon-mods/` folder (rename it `mjolnir`), enable it in Options > Mods.
 Or install the tool with `cargo binstall --git https://github.com/horizon-rust/horizon cargo-horizon-mod`, then in

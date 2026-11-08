@@ -1,0 +1,15 @@
+schema = 1
+id = "mjolnir_storm"
+name = "Mjolnir Storm"
+version = "0.1.0"
+api = "0.1"
+description = "Impact frames, zoom blur, colour split and a cold storm grade for the Mjolnir mod. Works with the mod's native half."
+authors = ["maxikyt2k"]
+license = "MIT"
+
+[[post]]
+file = "post.wgsl"
+name = "Mjolnir storm"
+
+[budget]
+gpu_ms = 1.5

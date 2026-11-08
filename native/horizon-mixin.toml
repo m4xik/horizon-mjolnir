@@ -92,3 +92,49 @@ helper = "fov.rs"
 bindings = [
   { name = "modifier", ty = "&mut f32", value = "modifier" },
 ]
+
+# Cinematic: the camera swings around the player.
+[[injection]]
+id = "camera-orbit"
+hook = "camera_pose"
+hook_version = 1
+kind = "HEAD"
+helper = "orbit.rs"
+bindings = [
+  { name = "position", ty = "&mut [f64; 3]", value = "position" },
+  { name = "yaw", ty = "&mut f32", value = "yaw" },
+  { name = "pitch", ty = "&mut f32", value = "pitch" },
+]
+
+# The first-person hand hides while the camera orbits.
+[[injection]]
+id = "hide-hand"
+hook = "render_hand"
+hook_version = 1
+kind = "HEAD"
+helper = "hand.rs"
+bindings = [
+  { name = "canceled", ty = "&mut bool", value = "canceled" },
+]
+
+# Lightning arcs from the hammer to its targets. Not in the hook catalog yet, so it names its target
+# and relies on the pinned Horizon revision.
+[[injection]]
+id = "arc-lines"
+target = "horizon_client::game::native_hooks::Game<'_>::native_world_primitives"
+kind = "HEAD"
+helper = "arcs.rs"
+bindings = [
+  { name = "primitives", ty = "&mut WorldPrimitives", value = "primitives" },
+]
+
+# Values for the mjolnir_storm shader pack.
+[[injection]]
+id = "storm-values"
+hook = "shader_params"
+hook_version = 1
+kind = "HEAD"
+helper = "shader.rs"
+bindings = [
+  { name = "params", ty = "&mut [[f32; 4]; 8]", value = "params" },
+]

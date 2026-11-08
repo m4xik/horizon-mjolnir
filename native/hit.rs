@@ -7,6 +7,7 @@ fn hit_strike(game: &mut crate::game::Game<'_>, stack: &ItemStack, entity: u32) 
     let Some(player) = host.acting_player() else { return };
     let Some(target) = host.entity(entity) else { return };
     if let Some(pos) = target.position(&*host) {
-        crate::game::mjolnir::queue_hit(&player.dimension, pos, &player.name);
+        let origin = [player.position[0], player.position[1] + 1.4, player.position[2]];
+        crate::game::mjolnir::queue_hit(&player.dimension, pos, origin, &player.name);
     }
 }
