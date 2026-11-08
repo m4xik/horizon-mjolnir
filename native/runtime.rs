@@ -175,11 +175,23 @@ pub fn queue_wrath(uuid: u128, dim: &str, player: &str, pos: [f64; 3], yaw_deg: 
     })
 }
 
+const SWEEP: &str = "kill @e[type=minecraft:lightning_bolt]";
+
+// Summoned bolts never despawn on their own at this Horizon pin, and they are saved with the chunks,
+// so they would all strike again on the next world entry. Remove a bolt shortly after it landed.
+pub fn queue_cleanup() {
+    with(|s| schedule(s, 16, vec![Action::Command(SWEEP.to_string())]));
+}
+
 // Called at the end of each server tick. Returns the actions that are due.
 pub fn drain() -> Vec<Action> {
     with(|s| {
         s.tick += 1;
         let now = s.tick;
+        // Also sweep bolts left in a world by older builds, soon after entry and now and then.
+        if now == 40 || now % 400 == 0 {
+            schedule(s, 0, vec![Action::Command(SWEEP.to_string())]);
+        }
         let mut due = Vec::new();
         // Actions that waited seconds of real time belong to a world that was left: drop them,
         // so re-entering a world never replays an old storm.

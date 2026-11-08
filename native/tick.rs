@@ -17,6 +17,7 @@ fn tick(game: &mut crate::game::Game<'_>, phase: &horizon_client::mod_api::Serve
                     horizon_world::nbt::Compound::default(),
                 );
                 crate::game::mjolnir::trigger_fx(pos, big);
+                crate::game::mjolnir::queue_cleanup();
             }
             crate::game::mjolnir::Action::Arc { from, to } => {
                 crate::game::mjolnir::add_arc(from, to);
